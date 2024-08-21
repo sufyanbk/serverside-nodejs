@@ -12,6 +12,41 @@ exports.getAllAssets = async (req, res) => {
     }
 };
 
+// pick asset based on id 
+exports.getAssetByid = async (req, res) => {
+    try {
+        const { id } = req.params; // Get the ticker from the request parameters
+        const asset = await Asset.findOne({ where: { id } }); // Find the asset by ticker
+
+        if (asset) {
+            res.json(asset); // Return the asset if found
+        } else {
+            res.status(404).json({ error: 'Asset not found' }); // Return 404 if not found
+        }
+    } catch (error) {
+        console.error('Error fetching asset by id:', error);
+        res.status(500).json({ error: 'An error occurred while fetching the asset.' });
+    }
+};
+
+// pick asset based on Ticker
+exports.getAssetByTicker = async (req, res) => {
+    try {
+        const { ticker } = req.params; // Get the ticker from the request parameters
+        const asset = await Asset.findOne({ where: { ticker } }); // Find the asset by ticker
+
+        if (asset) {
+            res.json(asset); // Return the asset if found
+        } else {
+            res.status(404).json({ error: 'Asset not found' }); // Return 404 if not found
+        }
+    } catch (error) {
+        console.error('Error fetching asset by ticker:', error);
+        res.status(500).json({ error: 'An error occurred while fetching the asset.' });
+    }
+};
+
+
 // Create asset
 
 exports.createAsset = async (req, res) => {
