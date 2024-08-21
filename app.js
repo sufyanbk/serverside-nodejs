@@ -10,8 +10,8 @@ const app = express();
 app.use(express.json());
 
 // Routes
-app.use('/portfolio', portfolioRoutes);
-//app.use('/assets', assetRoutes);
+app.use('/api/portfolio', portfolioRoutes);
+//app.use('api/assets', assetRoutes);
 //app.use('/transactions', transactionRoutes);
 
 const PORT = process.env.PORT || 3000;
