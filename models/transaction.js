@@ -28,10 +28,10 @@ const Transaction = sequelize.define('Transaction', {
         type: DataTypes.INTEGER,
         allowNull: false,
       }
-    }, {
-      timestamps: true,
+}, {
+      timestamps: false,
       tableName: 'transactions',
-    });
+});
   
 module.exports = Transaction;
   

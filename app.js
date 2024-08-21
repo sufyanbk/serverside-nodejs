@@ -1,12 +1,16 @@
 const express = require('express');
 const app = express();
 const assetRoutes = require('./routes/assetRoutes');
+const transactionRoutes = require('./routes/transactionRoutes');
 
 // Middleware to parse JSON
 app.use(express.json());
 
 // Use the asset routes
 app.use('/api', assetRoutes);
+
+// Use the transaction routes
+app.use('/api/transactions', transactionRoutes);
 
 // Start the server
 const PORT = process.env.PORT || 3000;
