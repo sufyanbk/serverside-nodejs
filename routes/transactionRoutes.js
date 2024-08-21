@@ -7,5 +7,8 @@ const transactionController = require('../controllers/transactionController');
 // This route will call the getAllAssets controller function to fetch all assets
 router.get('/list', transactionController.getAllTransactions);
 router.post('/insert', transactionController.insertNewTransaction);
+router.delete('/delete/:id', transactionController.deleteTransaction);
+router.put('/update/:id', transactionController.updateTransaction);
+
 
 module.exports = router;
