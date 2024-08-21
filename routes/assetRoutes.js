@@ -7,4 +7,6 @@ const assetController = require('../controllers/assetController');
 // This route will call the getAllAssets controller function to fetch all assets
 router.get('/assets', assetController.getAllAssets);
 
+router.post('/assets', assetController.createAsset);
+
 module.exports = router;
