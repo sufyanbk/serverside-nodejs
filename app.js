@@ -1,8 +1,8 @@
 const express = require('express');
 const sequelize = require('./config/database');
 const portfolioRoutes = require('./routes/portfolioRoutes');
-//const assetRoutes = require('./routes/assets');
-//const transactionRoutes = require('./routes/transactions');
+//const assetRoutes = require('./routes/assetsRoutes');
+//const transactionRoutes = require('./routes/transactionsRoutes');
 
 const app = express();
 
@@ -11,7 +11,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api/portfolio', portfolioRoutes);
-//app.use('api/assets', assetRoutes);
+//app.use('api', assetRoutes);
 //app.use('/transactions', transactionRoutes);
 
 const PORT = process.env.PORT || 3000;
