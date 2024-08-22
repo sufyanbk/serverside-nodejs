@@ -4,5 +4,7 @@ const router = express.Router();
 const chartsController = require('../controllers/chartsController');
 
 router.get('/', chartsController.getIntradayData);
+router.get('/gainers', chartsController.getGainersData);
+router.get('/losers', chartsController.getLosersData);
 
 module.exports = router;
