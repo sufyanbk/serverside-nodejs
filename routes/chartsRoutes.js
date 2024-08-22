@@ -6,5 +6,6 @@ const chartsController = require('../controllers/chartsController');
 router.get('/', chartsController.getIntradayData);
 router.get('/gainers', chartsController.getGainersData);
 router.get('/losers', chartsController.getLosersData);
+router.get('/commodities', chartsController.getHistoricalData);
 
 module.exports = router;

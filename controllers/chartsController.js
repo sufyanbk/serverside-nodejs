@@ -110,3 +110,42 @@ exports.getLosersData = async (req, res) => {
     }
 };
 
+exports.getHistoricalData = async (req, res) => {
+    const { symbol, from, to } = req.query; // Extract query parameters for symbol, from, and to dates
+    const apiKey = "SQAeFvgo3n8o7ghhKKUqabfCztICSW1Z"; // obvs change this before making this public
+    const url = `https://financialmodelingprep.com/api/v3/historical-chart/5min/${symbol}`; //url for accessing the api
+    
+    const params = {
+        from: from, // Start date in format YYYY-MM-DD
+        to: to,     // End date in format YYYY-MM-DD
+        apikey: apiKey
+    };
+
+    try {
+        const response = await axios.get(url, { params });
+        const data = response.data;
+
+        // Check if data is an array and process it
+        if (Array.isArray(data)) {
+            // Map through the array and extract the relevant information
+            const historicalData = data.map(entry => ({
+                date: entry.date,
+                open: parseFloat(entry.open),
+                high: parseFloat(entry.high),
+                low: parseFloat(entry.low),
+                close: parseFloat(entry.close),
+                volume: parseFloat(entry.volume)
+            }));
+
+            // Send the processed data as a JSON response
+            return res.json({ historicalData });
+        } else {
+            // Handle unexpected data format
+            return res.status(404).json({ error: 'Data not found or invalid format.' });
+        }
+    } catch (error) {
+        console.error('Error fetching data:', error.message);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
+
