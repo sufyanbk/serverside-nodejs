@@ -1,0 +1,9 @@
+POST http://localhost:3000/api/assets HTTP/1.1
+content-type: application/json
+
+{
+    "asset_name": "Sample Asset",
+    "asset_type": "Stock",
+    "ticker": "SMP",
+    "value": "100.00"
+}

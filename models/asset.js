@@ -22,6 +22,10 @@ const Asset = sequelize.define('Asset', {
         type: DataTypes.STRING(10),
         allowNull: true,
     },
+    value : {
+        type: DataTypes.DECIMAL,
+        allowNull: false,
+    },
     created_at: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
