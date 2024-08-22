@@ -8,7 +8,7 @@ const transactionController = require('../controllers/transactionController');
 router.get('/list', transactionController.getAllTransactions);
 router.post('/insert', transactionController.insertNewTransaction);
 router.delete('/delete/:id', transactionController.deleteTransaction);
-router.put('/update/:id', transactionController.updateTransaction);
+router.put('/update/:id', transactionController.updateTransaction); //have to put the id we want to update in the url unlike prev
 
 
 module.exports = router;
