@@ -1,5 +1,7 @@
 const { Portfolio } = require('../models');
 
+const apiKey = "6J0XU4I1S15EICOI";
+
 // Create a new portfolio entry
 exports.createPortfolio = async (req, res) => {
   try {

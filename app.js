@@ -7,6 +7,7 @@ const transactionRoutes = require('./routes/transactionRoutes');
 const portfolioRoutes = require('./routes/portfolioRoutes');
 const userRoutes = require('./routes/userRoutes')
 const reportRoutes = require('./routes/reportRoutes'); 
+const chartsRoutes = require('./routes/chartsRoutes');
 
 // Middleware to parse JSON bodies
 app.use(express.json());
@@ -17,6 +18,7 @@ app.use('/api', assetRoutes);
 app.use('/transactions', transactionRoutes);
 app.use('/api', userRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/charts', chartsRoutes);
 
 
 const PORT = process.env.PORT || 3000;
