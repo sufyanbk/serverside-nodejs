@@ -15,7 +15,9 @@ exports.createPortfolio = async (req, res) => {
 // Get all portfolio entries
 exports.getAllPortfolios = async (req, res) => {
   try {
-    const portfolios = await Portfolio.findAll();
+    const portfolios = await Portfolio.findAll({
+      attributes: ['id', 'asset_id', 'quantity', 'average_price', 'total_value'] // Include total_value explicitly
+    });
     res.status(200).json(portfolios);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -25,7 +27,9 @@ exports.getAllPortfolios = async (req, res) => {
 // Get a specific portfolio entry by ID
 exports.getPortfolioById = async (req, res) => {
   try {
-    const portfolio = await Portfolio.findByPk(req.params.id);
+    const portfolio = await Portfolio.findByPk(req.params.id, {
+      attributes: ['id', 'asset_id', 'quantity', 'average_price', 'total_value'] // Include total_value explicitly
+    });
     if (!portfolio) {
       return res.status(404).json({ message: 'Portfolio entry not found' });
     }
@@ -34,6 +38,7 @@ exports.getPortfolioById = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 // Update a portfolio entry by ID
 exports.updatePortfolio = async (req, res) => {
