@@ -6,49 +6,66 @@ require('dotenv').config(); //api key fomr alpha
 const axios = require('axios');
 const { Op } = require('sequelize'); // Import Op for Sequelize operators
 
-// api key alpha
-const API_KEY = process.env.ALPHA_VANTAGE_API_KEY;
 
-//Function to fetch the current price of an asset from alpha vantage API
+// api key alpha
+//const API_KEY = process.env.ALPHA_VANTAGE_API_KEY;
+
+const yahooFinance = require('yahoo-finance2').default;
+
 const fetchCurrentPrice = async (ticker) => {
     try {
-        const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${ticker}&apikey=${API_KEY}`;
-        const response = await axios.get(url);
-        const price = response.data['Global Quote']['05. price'];
-
-        console.log(`Fetched price for ${ticker}: ${price}`);
+        const quote = await yahooFinance.quote(ticker, {}, { validateResult: false });
+        const price = quote.regularMarketPrice;
+        //console.log(`Fetched price for ${ticker}: ${price}`);
         return parseFloat(price);
     } catch (error) {
-        console.error(`Error fetching current price for ${ticker}:`, error.message);
+        console.error(`Error fetching current price for ${ticker} from Yahoo Finance:`, error.message);
         return null;
     }
 };
 
-// Function to check and update asset prices
+var tempCheckResults = [];
+function pushToList(results) {
+    tempCheckResults.push(results);
+}
+
 exports.checkAssetPrices = async () => {
     try {
-        const date24HoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const date1MinuteAgo = new Date(Date.now() - 1 * 60 * 1000);  // Adjusted for testing
 
         const assetsToCheck = await Asset.findAll({
             where: {
                 updatedAt: {
-                    [Op.lte]: date24HoursAgo
+                    [Op.lte]: date1MinuteAgo  // Adjusted for testing purposes
                 }
             }
         });
-
+    
         for (const asset of assetsToCheck) {
             const currentPrice = await fetchCurrentPrice(asset.ticker);
             if (currentPrice !== null) {
-                console.log(`Current price of ${asset.ticker}: ${currentPrice}`);
-                // You can store the current price or compare it with the stored value as needed
+                const savedPrice = parseFloat(asset.value);  // Ensure this is a number
+                const priceDifference = currentPrice - savedPrice;
+                const percentageChange = ((priceDifference / savedPrice) * 100).toFixed(2);
+
+                const result = {
+                    asset: asset.ticker,
+                    savedPrice: savedPrice,
+                    currentPrice: currentPrice,
+                    priceDifference: priceDifference.toFixed(2),  // String with 2 decimals
+                    percentageChange: `${percentageChange}%`,  // Add % sign for clarity
+                    status: priceDifference >= 0 ? "Profit" : "Loss"  // Indicate profit or loss
+                };
+
+                pushToList(result);
             }
         }
+        return tempCheckResults;  // Return the results for further use if needed
     } catch (error) {
         console.error('Error checking asset prices:', error);
+        return [];
     }
 };
-
 
 // /////////////////////    testing  the price checker  /////////////////////////////////////
 
@@ -189,3 +206,6 @@ exports.deleteAsset = async (req, res) => {
         res.status(500).json({ error: 'An error occurred while deleting the asset.' });
     }
 };
+
+
+//exports.lastCheckResults = lastCheckResults;  // Export the variable

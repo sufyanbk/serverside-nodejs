@@ -7,6 +7,7 @@ const transactionRoutes = require('./routes/transactionRoutes');
 const portfolioRoutes = require('./routes/portfolioRoutes');
 const userRoutes = require('./routes/userRoutes')
 const reportRoutes = require('./routes/reportRoutes'); 
+const priceCheckRoutes = require('./routes/priceCheckRoutes');
 const cron = require('node-cron'); // con for the auto updater 12 or 24 hr
 const { checkAssetPrices } = require('./controllers/assetController'); //cono for the auto updater 12 or 24 hr
 
@@ -19,6 +20,7 @@ app.use('/api', assetRoutes);
 app.use('/transactions', transactionRoutes);
 app.use('/api', userRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api', priceCheckRoutes); // Pirce check route
 
 
 // Schedule the task to run every 12 hours

@@ -23,17 +23,19 @@ const Asset = sequelize.define('Asset', {
         allowNull: true,
     },
     value : {
-        type: DataTypes.DECIMAL,
+        type: DataTypes.DECIMAL(10,2),
         allowNull: false,
     },
-    created_at: {
+    createdAt: {  // Update to camelCase to match the column name
         type: DataTypes.DATE,
+        field: 'createdAt',  // Map to the correct column in the database
         defaultValue: DataTypes.NOW,
     },
-    updated_at: {
+    updatedAt: {  // Update to camelCase to match the column name
         type: DataTypes.DATE,
+        field: 'updatedAt',  // Map to the correct column in the database
         defaultValue: DataTypes.NOW,
-    },
+    }
 }, {
     tableName: 'assets',
     timestamps: false,  // Disable automatic timestamps (createdAt, updatedAt)
