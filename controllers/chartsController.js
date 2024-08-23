@@ -1,6 +1,6 @@
-const axios = require('axios');
+const axios = require('axios');//module required for external api communication
 
-exports.getIntradayData = async (req, res) => {
+exports.getIntradayData = async (req, res) => { //function to get historical data for the stocks based on ticker symbol
     const { symbol, interval } = req.query; // Use req.query to handle GET request query parameters
     const url = `https://www.alphavantage.co/query`; //The url for the api to be built upon
     const outputSize = "full"; //gives the past 30 days of history
@@ -40,9 +40,9 @@ exports.getIntradayData = async (req, res) => {
     }
 };
 
-exports.getGainersData = async (req, res) => {
+exports.getGainersData = async (req, res) => { //function to get the biggest gainers of the day
     const apiKey = "SQAeFvgo3n8o7ghhKKUqabfCztICSW1Z"; // obvs change this when putting in proper
-    const url = 'https://financialmodelingprep.com/api/v3/stock_market/gainers';
+    const url = 'https://financialmodelingprep.com/api/v3/stock_market/gainers'; //url for the api query
 
     const params = {
         apikey: apiKey
@@ -75,7 +75,7 @@ exports.getGainersData = async (req, res) => {
     }
 };
 
-exports.getLosersData = async (req, res) => {
+exports.getLosersData = async (req, res) => { //function to get data on the biggest losers of the day
     const apiKey = "SQAeFvgo3n8o7ghhKKUqabfCztICSW1Z"; // obvs change this when putting in proper
     const url = 'https://financialmodelingprep.com/api/v3/stock_market/losers';
 
@@ -110,7 +110,7 @@ exports.getLosersData = async (req, res) => {
     }
 };
 
-exports.getHistoricalData = async (req, res) => {
+exports.getHistoricalData = async (req, res) => { //function to get historical commodity data
     const { symbol, from, to } = req.query; // Extract query parameters for symbol, from, and to dates
     const apiKey = "SQAeFvgo3n8o7ghhKKUqabfCztICSW1Z"; // obvs change this before making this public
     const url = `https://financialmodelingprep.com/api/v3/historical-chart/5min/${symbol}`; //url for accessing the api
@@ -127,23 +127,19 @@ exports.getHistoricalData = async (req, res) => {
 
         // Check if data is an array and process it
         if (Array.isArray(data)) {
-            // Map through the array and extract the relevant information
-            const historicalData = data.map(entry => ({
-                date: entry.date,
-                open: parseFloat(entry.open),
-                high: parseFloat(entry.high),
-                low: parseFloat(entry.low),
-                close: parseFloat(entry.close),
-                volume: parseFloat(entry.volume)
-            }));
+            //comment and un-comment depending on which datapoints you want to model
+            const highData = data.map(entry => parseFloat(entry.high));
+            //const lowData = data.map(entry => parseFloat(entry.low));
+            //const closeData = data.map(entry => parseFloat(entry.close));
 
             // Send the processed data as a JSON response
-            return res.json({ historicalData });
+            return res.json({ highData });
         } else {
             // Handle unexpected data format
             return res.status(404).json({ error: 'Data not found or invalid format.' });
         }
     } catch (error) {
+        //Handles the error if something goes wrong server side
         console.error('Error fetching data:', error.message);
         return res.status(500).json({ error: 'Internal Server Error' });
     }
