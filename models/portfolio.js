@@ -1,35 +1,54 @@
 // models/portfolio.js
-module.exports = (sequelize, DataTypes) => {
-  const Portfolio = sequelize.define('Portfolio', {
-      asset_id: {
-          type: DataTypes.INTEGER,
-          allowNull: false,
-      },
-      quantity: {
-          type: DataTypes.INTEGER,
-          allowNull: false,
-      },
-      average_price: {
-          type: DataTypes.DECIMAL(10, 2),
-          allowNull: false,
-      },
-      // No need to define total_value here because it's a generated column in the DB
-  }, {
-      timestamps: true, // or false, depending on whether you need createdAt and updatedAt
-      tableName: 'portfolio',
-  });
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
+const Asset = require('./asset');
 
-  // Including total_value in the model's attribute list when querying
-  Portfolio.prototype.toJSON = function () {
-      const values = Object.assign({}, this.get());
+const Portfolio = sequelize.define('Portfolio', {
+    id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+    },
+    portfolio_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+    },
+    asset_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: Asset, // This links the asset_id to the Asset model
+            key: 'id',
+        },
+    },
+    quantity: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+    },
+    average_price: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+    },
+    total_value: {
+        type: DataTypes.DECIMAL(15, 2), // Assuming you store total_value instead of calculating it dynamically
+        allowNull: true, // Can be calculated or updated as needed
+    },
+    createdAt: {  
+        type: DataTypes.DATE,
+        field: 'created_at',
+        defaultValue: DataTypes.NOW,
+    },
+    updatedAt: {  
+        type: DataTypes.DATE,
+        field: 'updated_at',
+        defaultValue: DataTypes.NOW,
+    }
+}, {
+    tableName: 'portfolio',
+    timestamps: true, // This will automatically manage createdAt and updatedAt fields
+});
 
-      // Add total_value manually from raw data, if present
-      if (this.getDataValue('total_value') !== undefined) {
-          values.total_value = this.getDataValue('total_value');
-      }
-      
-      return values;
-  };
+// Optionally define an association if you want to access related assets directly
+Portfolio.belongsTo(Asset, { foreignKey: 'asset_id', as: 'asset' });
 
-  return Portfolio;
-};
+module.exports = Portfolio;

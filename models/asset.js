@@ -1,9 +1,6 @@
 const { DataTypes } = require('sequelize');
-
-// Import the configured sequelize instance
 const sequelize = require('../config/database');
 
-// Define the 'Asset' model, which maps to the 'assets' table in the database
 const Asset = sequelize.define('Asset', {
     id: {
         type: DataTypes.INTEGER,
@@ -22,24 +19,23 @@ const Asset = sequelize.define('Asset', {
         type: DataTypes.STRING(10),
         allowNull: true,
     },
-    value : {
-        type: DataTypes.DECIMAL(10,2),
+    value: {
+        type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
     },
-    createdAt: {  // Update to camelCase to match the column name
+    createdAt: {  
         type: DataTypes.DATE,
-        field: 'createdAt',  // Map to the correct column in the database
+        field: 'created_at',
         defaultValue: DataTypes.NOW,
     },
-    updatedAt: {  // Update to camelCase to match the column name
+    updatedAt: {  
         type: DataTypes.DATE,
-        field: 'updatedAt',  // Map to the correct column in the database
+        field: 'updated_at',
         defaultValue: DataTypes.NOW,
     }
 }, {
     tableName: 'assets',
-    timestamps: false,  // Disable automatic timestamps (createdAt, updatedAt)
+    timestamps: true,  // Disable automatic timestamps (createdAt, updatedAt)
 });
 
-// Export the model to be used in other parts of the application
 module.exports = Asset;
