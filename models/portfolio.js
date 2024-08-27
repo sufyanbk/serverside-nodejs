@@ -1,35 +1,38 @@
 // models/portfolio.js
-module.exports = (sequelize, DataTypes) => {
-  const Portfolio = sequelize.define('Portfolio', {
-      asset_id: {
-          type: DataTypes.INTEGER,
-          allowNull: false,
-      },
-      quantity: {
-          type: DataTypes.INTEGER,
-          allowNull: false,
-      },
-      average_price: {
-          type: DataTypes.DECIMAL(10, 2),
-          allowNull: false,
-      },
-      // No need to define total_value here because it's a generated column in the DB
-  }, {
-      timestamps: true, // or false, depending on whether you need createdAt and updatedAt
-      tableName: 'portfolio',
-  });
+const { Model, DataTypes } = require('sequelize');
+const sequelize = require('../config/database'); // Adjust path as needed
 
-  // Including total_value in the model's attribute list when querying
-  Portfolio.prototype.toJSON = function () {
-      const values = Object.assign({}, this.get());
+class Portfolio extends Model {}
 
-      // Add total_value manually from raw data, if present
-      if (this.getDataValue('total_value') !== undefined) {
-          values.total_value = this.getDataValue('total_value');
-      }
-      
-      return values;
-  };
+Portfolio.init({
+  portfolio_id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+  },
+  average_price: {
+    type: DataTypes.DECIMAL(10, 2),
+    defaultValue: 0.00,
+  },
+  quantity: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+  },
+  createdAt: {
+    type: DataTypes.DATE,
+    field: 'created_at',
+    defaultValue: DataTypes.NOW,
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    field: 'updated_at',
+    defaultValue: DataTypes.NOW,
+  }
+}, {
+  sequelize,
+  modelName: 'Portfolio',
+  tableName: 'portfolios',
+  timestamps: true,  // Enable timestamps
+});
 
-  return Portfolio;
-};
+module.exports = Portfolio;

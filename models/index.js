@@ -1,14 +1,34 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../config/database'); // Adjust path based on your setup
-const Portfolio = require('./portfolio')(sequelize, Sequelize);
-//const Transaction = require('./transaction')(sequelize, Sequelize);
+const sequelize = require('../config/database');
+const Asset = require('./asset');
+const Portfolio = require('./portfolio');
+const PortfolioAsset = require('./portfolioasset');
+const Transaction = require('./transaction');
 
-const db = {
-  Portfolio,
-  //Transaction,
+// Define associations
+Asset.belongsToMany(Portfolio, { through: PortfolioAsset, foreignKey: 'asset_id' });
+Portfolio.belongsToMany(Asset, { through: PortfolioAsset, foreignKey: 'portfolio_id' });
+
+Portfolio.hasMany(Transaction, { foreignKey: 'portfolio_id' });
+Transaction.belongsTo(Portfolio, { foreignKey: 'portfolio_id' });
+
+Asset.hasMany(Transaction, { foreignKey: 'asset_id' });
+Transaction.belongsTo(Asset, { foreignKey: 'asset_id' });
+
+// Sync all models
+const syncModels = async () => {
+  try {
+    await sequelize.sync({ alter: true }); // Use { force: true } for initial setup (drops tables)
+    console.log('Database synced');
+  } catch (error) {
+    console.error('Error syncing database:', error);
+  }
 };
 
-db.sequelize = sequelize;
-//db.Sequelize = Sequelize;
+syncModels();
 
-module.exports = db;
+module.exports = {
+  Asset,
+  Portfolio,
+  PortfolioAsset,
+  Transaction,
+};

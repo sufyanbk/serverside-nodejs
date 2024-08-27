@@ -1,94 +1,82 @@
-const Transaction = require('../models/transaction');
+const { Transaction, Portfolio, Asset, PortfolioAsset } = require('../models');
 
-// Get all transactions
-// Controller function to get all transactions from the database
-exports.getAllTransactions = async (req, res) => {
-    try {
-        const transactions = await Transaction.findAll();
-        res.json(transactions);
-    } catch (error) {
-        console.error('Error fetching transactions:', error);
-        res.status(500).json({ error: 'An error occurred while fetching transactions.' });
-    }
-};
+// Function to handle buying or selling an asset
+exports.createTransaction = async (req, res) => {
+  const { portfolio_id, asset_id, transaction_type, quantity, price, transaction_date } = req.body;
 
-exports.insertNewTransaction = async (req, res) => {
-    const { asset_id, asset_type, quantity, price, transaction_date, user_id } = req.body;
-
-    // Check if all required fields are provided
-    if (!asset_id || !asset_type || !quantity || !price || !transaction_date || !user_id) {
-        return res.status(400).json({ error: 'All fields are required' });
+  try {
+    // Find the portfolio to which the transaction is associated
+    const portfolio = await Portfolio.findByPk(portfolio_id);
+    if (!portfolio) {
+      return res.status(404).json({ error: 'Portfolio not found' });
     }
 
-    try {
-        const newTransaction = await Transaction.create({
-            asset_id,
-            asset_type,
-            quantity,
-            price,
-            transaction_date,
-            user_id
-        });
-        res.status(201).json(newTransaction);
-    } catch (err) {
-        console.error('Error creating transaction:', err);
-        res.status(500).json({ error: err.message });
+    // Find the asset to which the transaction is associated
+    const asset = await Asset.findByPk(asset_id);
+    if (!asset) {
+      return res.status(404).json({ error: 'Asset not found' });
     }
-};
 
-exports.deleteTransaction = async (req, res) => {
-    const { id } = req.params;  // Extract the asset_id from the request parameters given in the url extension
+    // Create the transaction
+    const newTransaction = await Transaction.create({
+      asset_name: asset.asset_name, //add asset_name here -> ASSET.asset_id ***
+      portfolio_id,
+      asset_id,
+      transaction_type,
+      quantity,
+      price,
+      transaction_date,
+    });
 
-    try {
-        // Find the transaction by id in the table
-        const transaction = await Transaction.findByPk(id);
+    // Calculate the total transaction value
+    const totalTransactionValue = quantity * price;
 
-        // If the transaction does not exist, return a 404 error
-        if (!transaction) {
-            return res.status(404).json({ error: 'Transaction not found' });
+    // Update the portfolio based on transaction type
+    if (transaction_type === 'buy') {
+      portfolio.quantity += quantity;
+      portfolio.average_price =
+        (portfolio.average_price * (portfolio.quantity - quantity) + totalTransactionValue) / portfolio.quantity;
+    } else if (transaction_type === 'sell') {
+      if (portfolio.quantity < quantity) {
+        return res.status(400).json({ error: 'Not enough assets in portfolio to sell' });
+      }
+      portfolio.quantity -= quantity;
+      // Update average price if needed or handle specific selling logic (e.g., FIFO, LIFO)
+    }
+
+    // Save the updated portfolio
+    await portfolio.save();
+
+    // Check if the asset already exists in the portfolio
+    let portfolioAsset = await PortfolioAsset.findOne({
+      where: { portfolio_id, asset_id },
+    });
+
+    if (transaction_type === 'buy') {
+      if (portfolioAsset) {
+        // Update the quantity in PortfolioAsset
+        portfolioAsset.quantity += quantity;
+      } else {
+        // If not, create a new PortfolioAsset
+        portfolioAsset = await PortfolioAsset.create({ portfolio_id, asset_id, quantity });
+      }
+    } else if (transaction_type === 'sell') {
+      if (portfolioAsset) {
+        portfolioAsset.quantity -= quantity;
+        if (portfolioAsset.quantity < 0) {
+          return res.status(400).json({ error: 'Not enough assets in portfolio to sell' });
         }
-
-        // Delete the transaction given by the id
-        await transaction.destroy();
-
-        // Return a success message if the deletion is successful
-        res.status(200).json({ message: 'Transaction deleted successfully' });
-    } catch (err) {
-        console.error('Error deleting transaction:', err);
-        res.status(500).json({ error: err.message });
+      } else {
+        return res.status(404).json({ error: 'Asset not found in portfolio' });
+      }
     }
-};
 
-// UPDATING FUNCTIONALITY
-exports.updateTransaction = async (req, res) => { 
-    const { id } = req.params;  // Extract the id from the request parameters using the url
-    const { asset_id, asset_type, quantity, price, transaction_date, user_id } = req.body;  // Get the data we wish to update
+    // Save or update PortfolioAsset
+    await portfolioAsset.save();
 
-    try {
-        // Find the transaction by id
-        const transaction = await Transaction.findByPk(id);
-
-        // If the transaction does not exist, return a 404 error
-        if (!transaction) {
-            return res.status(404).json({ error: 'Transaction not found' });
-        }
-
-        // Update the transaction
-        transaction.asset_id = asset_id !== undefined ? asset_id : transaction.asset_id;
-        transaction.asset_type = asset_type !== undefined ? asset_type : transaction.asset_type;
-        transaction.quantity = quantity !== undefined ? quantity : transaction.quantity;
-        transaction.price = price !== undefined ? price : transaction.price;
-        transaction.transaction_date = transaction_date !== undefined ? transaction_date : transaction.transaction_date;
-        transaction.user_id = user_id !== undefined ? user_id : transaction.user_id;
-
-        // Save the updated transaction 
-        await transaction.save();
-
-        // Return the updated transaction
-        res.status(200).json(transaction);
-    } catch (err) {
-        // Occurs when an error occurs during updating
-        console.error('Error updating transaction:', err);
-        res.status(500).json({ error: err.message });
-    }
+    res.status(201).json({ message: 'Transaction created successfully', transaction: newTransaction });
+  } catch (error) {
+    console.error('Error processing transaction:', error);
+    res.status(500).json({ error: 'An error occurred while processing the transaction' });
+  }
 };

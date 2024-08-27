@@ -1,37 +1,65 @@
-const { DataTypes } = require('sequelize');
+// models/transaction.js
+const { Model, DataTypes } = require('sequelize');
+const sequelize = require('../config/database'); // Adjust path as needed
 
-// Import the configured sequelize instance
-const sequelize = require('../config/database');
+class Transaction extends Model {}
 
-const Transaction = sequelize.define('Transaction', {
-    asset_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-      },
-      asset_type: {
-        type: DataTypes.ENUM('buy', 'sell'),
-        allowNull: false,
-      },
-      quantity: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-      },
-      price: {
-        type: DataTypes.DECIMAL(10, 2),
-        allowNull: false,
-      },
-      transaction_date: {
-        type: DataTypes.DATEONLY,
-        allowNull: false,
-      },
-      user_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-      }
+Transaction.init({
+  transaction_id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+  },
+  portfolio_id: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: 'portfolios',
+      key: 'portfolio_id'
+    }
+  },
+  asset_id: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: 'assets',
+      key: 'asset_id'
+    }
+  },
+  asset_name: { // New field for asset name * added new 
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  transaction_type: {
+    type: DataTypes.ENUM('buy', 'sell'),
+    allowNull: false,
+  },
+  quantity: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  price: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false,
+  },
+  transaction_date: {
+    type: DataTypes.DATE,
+    allowNull: false,
+  },
+  createdAt: {
+    type: DataTypes.DATE,
+    field: 'created_at',
+    defaultValue: DataTypes.NOW,
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    field: 'updated_at',
+    defaultValue: DataTypes.NOW,
+  }
 }, {
-      timestamps: false,
-      tableName: 'transactions',
+  sequelize,
+  modelName: 'Transaction',
+  tableName: 'transactions',
+  timestamps: true,  // Enable timestamps
 });
-  
+
 module.exports = Transaction;
   
