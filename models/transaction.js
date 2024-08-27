@@ -24,7 +24,7 @@ Transaction.init({
       key: 'asset_id'
     }
   },
-  asset_name: { // New field for asset name * added new 
+  asset_name: { 
     type: DataTypes.STRING,
     allowNull: false,
   },
@@ -62,4 +62,3 @@ Transaction.init({
 });
 
 module.exports = Transaction;
-  

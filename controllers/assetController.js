@@ -1,15 +1,14 @@
-//Const for CRUD functions
-const Asset = require('../models/asset');
+// models/assetController.js
 
-//Const for alpha vantage trigger and timing price check
-require('dotenv').config(); //api key fomr alpha
+// Const for CRUD functions
+const Asset = require('../models/asset');
+const PortfolioAsset = require('../models/portfolioAsset');
+const Portfolio = require('../models/portfolio');
+
+// Const for Alpha Vantage trigger and timing price check
+require('dotenv').config();
 const axios = require('axios');
 const { Op } = require('sequelize'); // Import Op for Sequelize operators
-
-
-// api key alpha
-//const API_KEY = process.env.ALPHA_VANTAGE_API_KEY;
-
 const yahooFinance = require('yahoo-finance2').default;
 
 const fetchCurrentPrice = async (ticker) => {
@@ -66,35 +65,6 @@ exports.checkAssetPrices = async () => {
     }
 };
 
-// /////////////////////    testing  the price checker  /////////////////////////////////////
-
-// if (require.main === module) {
-//     // This block will only run if this file is run directly from the Node.js command line
-//     exports.checkAssetPrices().then(() => {
-//         console.log("checkAssetPrices function executed.");
-//     }).catch((error) => {
-//         console.error("Error executing checkAssetPrices:", error);
-//     });
-// }
-// ///////////////////////   testing
-
-// // pick asset based on Ticker
-// exports.getAssetByTicker = async (req, res) => {
-//     try {
-//         const { ticker } = req.params; // Get the ticker from the request parameters
-//         const asset = await Asset.findOne({ where: { ticker } }); // Find the asset by ticker
-
-//         if (asset) {
-//             res.json(asset); // Return the asset if found
-//         } else {
-//             res.status(404).json({ error: 'Asset not found' }); // Return 404 if not found
-//         }
-//     } catch (error) {
-//         console.error('Error fetching asset by ticker:', error);
-//         res.status(500).json({ error: 'An error occurred while fetching the asset.' });
-//     }
-// };
-
 // Add a new asset
 exports.addAsset = async (req, res) => {
   try {
@@ -150,6 +120,13 @@ exports.editAsset = async (req, res) => {
     asset.value = value;
 
     await asset.save();
+    
+    // Update the associated portfolio assets as well
+    await PortfolioAsset.update(
+      { average_price: value },
+      { where: { asset_id: id } }
+    );
+
     res.status(200).json(asset);
   } catch (error) {
     console.error('Error updating asset:', error);
@@ -166,8 +143,13 @@ exports.deleteAsset = async (req, res) => {
       return res.status(404).json({ error: 'Asset not found' });
     }
 
+    // Remove the asset from any associated portfolios first
+    await PortfolioAsset.destroy({ where: { asset_id: id } });
+
+    // Then delete the asset itself
     await asset.destroy();
-    res.status(200).json({ message: 'Asset deleted successfully' });
+
+    res.status(200).json({ message: 'Asset and related portfolio entries deleted successfully' });
   } catch (error) {
     console.error('Error deleting asset:', error);
     res.status(500).json({ error: 'An error occurred while deleting the asset' });

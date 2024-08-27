@@ -17,4 +17,7 @@ router.delete('/portfolios/:id', portfolioController.deletePortfolio);
 // Add an asset to a portfolio
 router.post('/portfolios/:portfolioId/assets/:assetId', portfolioController.addAssetToPortfolio);
 
+// Remove an asset from a portfolio
+router.delete('/portfolios/:portfolioId/assets/:assetId', portfolioController.removeAssetFromPortfolio);
+
 module.exports = router;

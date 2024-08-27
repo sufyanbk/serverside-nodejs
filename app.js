@@ -1,31 +1,54 @@
-// const express = require('express');
-// const app = express();
-// const sequelize = require('./config/database');
-// const assetRoutes = require('./routes/assetRoutes');
-// const transactionRoutes = require('./routes/transactionRoutes');
-// const portfolioRoutes = require('./routes/portfolioRoutes');
-// const userRoutes = require('./routes/userRoutes')
-// const reportRoutes = require('./routes/reportRoutes'); 
-// const chartsRoutes = require('./routes/chartsRoutes');
-// const priceCheckRoutes = require('./routes/priceCheckRoutes');
-// const cron = require('node-cron'); // con for the auto updater 12 or 24 hr
-// const { checkAssetPrices } = require('./controllers/assetController'); //cono for the auto updater 12 or 24 hr
+const express = require('express');
+const cors = require('cors');
+const app = express();
+const bodyParser = require('body-parser');
+const sequelize = require('./config/database'); // Import sequelize for database sync
 
-// // Middleware to parse JSON bodies
-// app.use(express.json());
+// Import routes
+const portfolioRoutes = require('./routes/portfolioRoutes');
+const assetRoutes = require('./routes/assetRoutes');
+const transactionRoutes = require('./routes/transactionRoutes');
+const reportRoutes = require('./routes/reportRoutes'); 
+const chartsRoutes = require('./routes/chartsRoutes');
+const priceCheckRoutes = require('./routes/priceCheckRoutes');
 
-// // Routes
-// app.use('/api/portfolio', portfolioRoutes);
-// app.use('/api', assetRoutes);
-// app.use('/transactions', transactionRoutes);
-// app.use('/api', userRoutes);
-// app.use('/api/reports', reportRoutes);
-// app.use('/api/charts', chartsRoutes);
-// app.use('/api', priceCheckRoutes); // Pirce check route
+// Import cron for scheduled tasks
+const cron = require('node-cron'); 
+const { checkAssetPrices } = require('./controllers/assetController'); // Asset price checker
 
+// Middleware to parse JSON bodies
+app.use(cors());
+app.use(bodyParser.json());
+app.use(express.json()); // To parse JSON bodies
 
-// // Schedule the task to run every 12 hours
-// cron.schedule('0 */12 * * *', async () => {
+// Register routes with the '/api' prefix
+app.use('/api', portfolioRoutes);
+app.use('/api', assetRoutes);
+app.use('/api', transactionRoutes);
+app.use('/api', reportRoutes);
+app.use('/api', chartsRoutes);
+app.use('/api', priceCheckRoutes); // Price check route
+
+// Global error handling
+app.use((err, req, res, next) => {
+  console.error('Global error handler:', err);
+  res.status(500).json({ error: 'An unexpected error occurred' });
+});
+
+// Schedule the task to run every 12 hours
+cron.schedule('0 */12 * * *', async () => {
+    console.log('Running scheduled check for asset prices...');
+    try {
+        await checkAssetPrices();
+        console.log("checkAssetPrices function executed.");
+    } catch (error) {
+        console.error("Error executing checkAssetPrices:", error);
+    }
+});
+
+// Uncomment the following block if you decide to use the 24-hour schedule as well
+// Schedule the task to run every 24 hours
+// cron.schedule('0 0 * * *', async () => {
 //     console.log('Running scheduled check for asset prices...');
 //     try {
 //         await checkAssetPrices();
@@ -35,52 +58,14 @@
 //     }
 // });
 
-// // // Schedule the task to run every 24 hours
-// // cron.schedule('0 0 * * *', async () => {
-// //     console.log('Running scheduled check for asset prices...');
-// //     try {
-// //         await checkAssetPrices();
-// //         console.log("checkAssetPrices function executed.");
-// //     } catch (error) {
-// //         console.error("Error executing checkAssetPrices:", error);
-// //     }
-// // });
-
-
-// // Start the server
-
-// const PORT = process.env.PORT || 3000;
-// sequelize.sync().then(() => {
-//     app.listen(PORT, () => {
-//         console.log(`Server is running on port ${PORT}`);
-//     });
-// }).catch(error => {
-//     console.error('Unable to connect to the database:', error);
-// });
-
-const express = require('express');
-const app = express();
-const bodyParser = require('body-parser');
-const portfolioRoutes = require('./routes/portfolioRoutes');
-const assetRoutes = require('./routes/assetRoutes');
-const transactionRoutes = require('./routes/transactionRoutes'); // New transaction routes
-
-app.use(bodyParser.json()); // To parse JSON bodies
-// Middleware to parse JSON requests
-app.use(express.json());
-// Use the transaction routes
-app.use('/api', transactionRoutes);
-// Register routes
-app.use('/api', portfolioRoutes);
-// Use the asset routes
-app.use('/api', assetRoutes);
-// Global error handling
-app.use((err, req, res, next) => {
-  console.error('Global error handler:', err);
-  res.status(500).json({ error: 'An unexpected error occurred' });
-});
-
+// Sync database and start server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+sequelize.sync()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
+  })
+  .catch(error => {
+    console.error('Unable to connect to the database:', error);
+  });

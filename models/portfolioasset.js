@@ -20,6 +20,16 @@ PortfolioAsset.init({
       key: 'asset_id'
     },
     primaryKey: true,
+  },
+  quantity: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,  // Start with 0 quantity
+  },
+  average_price: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false,
+    defaultValue: 0.00,  // Start with 0 average price
   }
 }, {
   sequelize,
