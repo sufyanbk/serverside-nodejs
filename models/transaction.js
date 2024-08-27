@@ -1,44 +1,65 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
-const Asset = require('./asset');
+// models/transaction.js
+const { Model, DataTypes } = require('sequelize');
+const sequelize = require('../config/database'); // Adjust path as needed
 
-const Transaction = sequelize.define('Transaction', {
-    id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
-    },
-    asset_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-            model: Asset, // Link to the Asset model
-            key: 'id',
-        },
-    },
-    transaction_type: {
-        type: DataTypes.ENUM('buy', 'sell'),
-        allowNull: false,
-    },
-    quantity: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-    },
-    price: {
-        type: DataTypes.DECIMAL(10, 2),
-        allowNull: false,
-    },
-    transaction_date: {
-        type: DataTypes.DATEONLY,
-        allowNull: false,
+class Transaction extends Model {}
+
+Transaction.init({
+  transaction_id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+  },
+  portfolio_id: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: 'portfolios',
+      key: 'portfolio_id'
     }
+  },
+  asset_id: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: 'assets',
+      key: 'asset_id'
+    }
+  },
+  asset_name: { // New field for asset name * added new 
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  transaction_type: {
+    type: DataTypes.ENUM('buy', 'sell'),
+    allowNull: false,
+  },
+  quantity: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  price: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false,
+  },
+  transaction_date: {
+    type: DataTypes.DATE,
+    allowNull: false,
+  },
+  createdAt: {
+    type: DataTypes.DATE,
+    field: 'created_at',
+    defaultValue: DataTypes.NOW,
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    field: 'updated_at',
+    defaultValue: DataTypes.NOW,
+  }
 }, {
-    timestamps: false, // You can set this to true if you want Sequelize to manage createdAt/updatedAt
-    tableName: 'transactions',
+  sequelize,
+  modelName: 'Transaction',
+  tableName: 'transactions',
+  timestamps: true,  // Enable timestamps
 });
 
-Transaction.belongsTo(Asset, { foreignKey: 'asset_id', as: 'asset' });
-
 module.exports = Transaction;
-
   

@@ -29,7 +29,6 @@ CREATE TABLE assets (
 -- Step 5: Create the transactions table
 CREATE TABLE transactions (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
     asset_id INT,
     asset_type ENUM('buy', 'sell') NOT NULL,
     quantity INT NOT NULL,

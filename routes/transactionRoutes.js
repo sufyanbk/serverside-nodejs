@@ -1,14 +1,8 @@
 const express = require('express');
 const router = express.Router();
-// Import the controller that handles transaction-related logic
 const transactionController = require('../controllers/transactionController');
 
-// Define the route for GET /assets
-// This route will call the getAllAssets controller function to fetch all assets
-router.get('/list', transactionController.getAllTransactions);
-router.post('/insert', transactionController.insertNewTransaction);
-router.delete('/delete/:id', transactionController.deleteTransaction);
-router.put('/update/:id', transactionController.updateTransaction); //have to put the id we want to update in the url unlike prev
-
+// Route to create a new transaction (buy or sell)
+router.post('/transactions', transactionController.createTransaction);
 
 module.exports = router;

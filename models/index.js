@@ -1,25 +1,34 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../config/database'); // Adjust path if necessary
-
-// Import models
-const Asset = require('./asset'); // Adjust the path if necessary
+const sequelize = require('../config/database');
+const Asset = require('./asset');
 const Portfolio = require('./portfolio');
+const PortfolioAsset = require('./portfolioasset');
 const Transaction = require('./transaction');
 
-// Establish associations
-Portfolio.belongsTo(Asset, { foreignKey: 'asset_id', as: 'asset' });
-Transaction.belongsTo(Asset, { foreignKey: 'asset_id', as: 'asset' });
+// Define associations
+Asset.belongsToMany(Portfolio, { through: PortfolioAsset, foreignKey: 'asset_id' });
+Portfolio.belongsToMany(Asset, { through: PortfolioAsset, foreignKey: 'portfolio_id' });
 
-// Add other associations if needed
+Portfolio.hasMany(Transaction, { foreignKey: 'portfolio_id' });
+Transaction.belongsTo(Portfolio, { foreignKey: 'portfolio_id' });
 
-// Create the database object to be exported
-const db = {
-  sequelize,
-  Sequelize,
-  Asset,
-  Portfolio,
-  Transaction,
+Asset.hasMany(Transaction, { foreignKey: 'asset_id' });
+Transaction.belongsTo(Asset, { foreignKey: 'asset_id' });
+
+// Sync all models
+const syncModels = async () => {
+  try {
+    await sequelize.sync({ alter: true }); // Use { force: true } for initial setup (drops tables)
+    console.log('Database synced');
+  } catch (error) {
+    console.error('Error syncing database:', error);
+  }
 };
 
-// Export the database object
-module.exports = db;
+syncModels();
+
+module.exports = {
+  Asset,
+  Portfolio,
+  PortfolioAsset,
+  Transaction,
+};

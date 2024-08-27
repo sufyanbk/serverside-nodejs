@@ -1,69 +1,86 @@
-const { Portfolio } = require('../models');
+const { Portfolio, Asset, PortfolioAsset } = require('../models');
 
-const apiKey = "6J0XU4I1S15EICOI";
-
-// Create a new portfolio entry
+// Create a new portfolio
 exports.createPortfolio = async (req, res) => {
   try {
-    const portfolio = await Portfolio.create(req.body);
-    res.status(201).json(portfolio);
+    const { average_price, quantity } = req.body;
+    const newPortfolio = await Portfolio.create({ average_price, quantity });
+    res.status(201).json(newPortfolio);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error('Error creating portfolio:', error);
+    res.status(500).json({ error: 'An error occurred while creating the portfolio' });
   }
 };
 
-// Get all portfolio entries
+// Get all portfolios
 exports.getAllPortfolios = async (req, res) => {
   try {
-    const portfolios = await Portfolio.findAll({
-      attributes: ['id', 'asset_id', 'quantity', 'average_price', 'total_value'] // Include total_value explicitly
-    });
+    const portfolios = await Portfolio.findAll();
     res.status(200).json(portfolios);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error retrieving portfolios:', error);
+    res.status(500).json({ error: 'An error occurred while retrieving portfolios' });
   }
 };
 
-// Get a specific portfolio entry by ID
+// Get a specific portfolio by ID
 exports.getPortfolioById = async (req, res) => {
   try {
-    const portfolio = await Portfolio.findByPk(req.params.id, {
-      attributes: ['id', 'asset_id', 'quantity', 'average_price', 'total_value'] // Include total_value explicitly
+    const { id } = req.params;
+    const portfolio = await Portfolio.findByPk(id, {
+      include: { all: true } // Includes associated models
     });
     if (!portfolio) {
-      return res.status(404).json({ message: 'Portfolio entry not found' });
+      return res.status(404).json({ error: 'Portfolio not found' });
     }
     res.status(200).json(portfolio);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error retrieving portfolio:', error);
+    res.status(500).json({ error: 'An error occurred while retrieving the portfolio' });
   }
 };
 
-
-// Update a portfolio entry by ID
-exports.updatePortfolio = async (req, res) => {
-  try {
-    const portfolio = await Portfolio.findByPk(req.params.id);
-    if (!portfolio) {
-      return res.status(404).json({ message: 'Portfolio entry not found' });
-    }
-    await portfolio.update(req.body);
-    res.status(200).json(portfolio);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-};
-
-// Delete a portfolio entry by ID
+// Delete a portfolio by ID
 exports.deletePortfolio = async (req, res) => {
   try {
-    const portfolio = await Portfolio.findByPk(req.params.id);
+    const { id } = req.params;
+    const portfolio = await Portfolio.findByPk(id);
     if (!portfolio) {
-      return res.status(404).json({ message: 'Portfolio entry not found' });
+      return res.status(404).json({ error: 'Portfolio not found' });
     }
     await portfolio.destroy();
-    res.status(204).send();
+    res.status(200).json({ message: 'Portfolio deleted successfully' });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error deleting portfolio:', error);
+    res.status(500).json({ error: 'An error occurred while deleting the portfolio' });
+  }
+};
+
+// Add an asset to a portfolio
+exports.addAssetToPortfolio = async (req, res) => {
+  try {
+    const { portfolioId, assetId } = req.params;
+    
+    // Check if the portfolio exists
+    const portfolio = await Portfolio.findByPk(portfolioId);
+    if (!portfolio) {
+      return res.status(404).json({ error: 'Portfolio not found' });
+    }
+
+    // Check if the asset exists
+    const asset = await Asset.findByPk(assetId);
+    if (!asset) {
+      return res.status(404).json({ error: 'Asset not found' });
+    }
+
+    // Add asset to the portfolio
+    await PortfolioAsset.findOrCreate({
+      where: { portfolio_id: portfolioId, asset_id: assetId }
+    });
+
+    res.status(200).json({ message: 'Asset added to portfolio successfully' });
+  } catch (error) {
+    console.error('Error adding asset to portfolio:', error);
+    res.status(500).json({ error: 'An error occurred while adding the asset to the portfolio' });
   }
 };
