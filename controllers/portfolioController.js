@@ -127,6 +127,7 @@ exports.addAssetToPortfolio = async (req, res) => {
     res.status(500).json({ error: 'An error occurred while adding the asset to the portfolio' });
   }
 };
+
 exports.removeAssetFromPortfolio = async (req, res) => {
   try {
     const { portfolioId, assetId } = req.params;
